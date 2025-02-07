@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.0.4](https://github.com/aweris/snyf/compare/v0.0.3...v0.0.4) (2025-02-07)
+
+
+### Features
+
+* sort depends_on and used_by to ensure the order of the paths ([a854bfc](https://github.com/aweris/snyf/commit/a854bfca2aa7dd2e3451705af7268066edf3319c))
+
+
+### Miscellaneous Chores
+
+* release 0.0.4 ([fb0a691](https://github.com/aweris/snyf/commit/fb0a6914b0eedbdb13a425bc18368624ac730a6d))
+
 ## [0.0.3](https://github.com/aweris/snyf/compare/v0.0.2...v0.0.3) (2025-02-07)
 
 
