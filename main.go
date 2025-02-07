@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"sort"
 	"strings"
 
 	"github.com/samber/lo"
@@ -109,6 +110,13 @@ func main() {
 				dep.UsedBy = append(dep.UsedBy, modData.Path)
 			}
 		}
+	}
+
+	// Sort modules by path
+
+	for _, modData := range byGomod {
+		sort.Strings(modData.DependsOn)
+		sort.Strings(modData.UsedBy)
 	}
 
 	// Output JSON
