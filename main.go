@@ -4,8 +4,11 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
+	"slices"
+	"strings"
 
 	"github.com/samber/lo"
 	"golang.org/x/mod/modfile"
@@ -39,15 +42,18 @@ func main() {
 	// flags
 	var (
 		source   string
+		path     string
 		extended bool
 	)
 
 	flag.StringVar(&source, "source", ".", "source directory to scan for go.mod files")
+	flag.StringVar(&path, "path", "", "path to a specific go.mod file or directory containing go.mod file to scan")
 	flag.BoolVar(&extended, "extended", false, "include require and replace information for each module. !!WARNING!! This can be very verbose.")
 
 	flag.Parse()
 
-	modules := make(map[string]*GoModule)
+	byGomod := make(map[string]*GoModule)
+	byPath := make(map[string]*GoModule)
 
 	// Scan for go.mod files
 	err := filepath.Walk(source, func(path string, info os.FileInfo, err error) error {
@@ -82,7 +88,8 @@ func main() {
 				gomod.Replace = lo.Map(mod.Replace, func(r *modfile.Replace, _ int) Replace { return Replace{Old: r.Old, New: r.New} })
 			}
 
-			modules[mod.Module.Mod.Path] = gomod
+			byGomod[gomod.Module] = gomod
+			byPath[gomod.Path] = gomod
 		}
 
 		return nil
@@ -94,10 +101,10 @@ func main() {
 	}
 
 	// find depends_on and used_by relationships
-	for _, modData := range modules {
+	for _, modData := range byGomod {
 		for _, req := range modData.Gomod.Require {
 			// Only add dependencies if they exist in our repo
-			if dep, exists := modules[req.Mod.Path]; exists {
+			if dep, exists := byGomod[req.Mod.Path]; exists {
 				modData.DependsOn = append(modData.DependsOn, req.Mod.Path)
 				dep.UsedBy = append(dep.UsedBy, modData.Module)
 			}
@@ -105,7 +112,17 @@ func main() {
 	}
 
 	// Output JSON
-	graph := ModuleGraph{Modules: modules}
+	var graph any
+
+	if path != "" {
+		if strings.HasSuffix(path, "go.mod") {
+			path = filepath.Dir(path)
+		}
+		graph = byPath[path]
+	} else {
+		graph = slices.Collect(maps.Values(byPath))
+	}
+
 	output, err := json.MarshalIndent(graph, "", "  ")
 	if err != nil {
 		fmt.Println("Error encoding JSON:", err)
