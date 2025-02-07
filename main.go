@@ -105,8 +105,8 @@ func main() {
 		for _, req := range modData.Gomod.Require {
 			// Only add dependencies if they exist in our repo
 			if dep, exists := byGomod[req.Mod.Path]; exists {
-				modData.DependsOn = append(modData.DependsOn, req.Mod.Path)
-				dep.UsedBy = append(dep.UsedBy, modData.Module)
+				modData.DependsOn = append(modData.DependsOn, dep.Path)
+				dep.UsedBy = append(dep.UsedBy, modData.Path)
 			}
 		}
 	}
